@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rainfall NC Compare</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%23167678' d='M16 2C10 11 5 17 5 22a11 11 0 0 0 22 0C27 17 22 11 16 2'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/static/node_modules/maplibre-gl/dist/maplibre-gl.css">
+  <link rel="stylesheet" href="/static/style.css">
+  <script defer src="/static/node_modules/chart.js/dist/chart.umd.js"></script>
+  <script type="module" src="/static/map.js"></script>
+</head>
+<body>
+  <a class="skip" href="#controls">Lewati ke kontrol peta</a>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark" aria-hidden="true">◈</span><div><h1>Rainfall <span>NC Compare</span></h1><p id="product-subtitle">Produk A × Produk B</p></div></div>
+    <nav class="modes" aria-label="Mode peta">
+      <button data-mode="single">Single</button><button data-mode="side" class="active" aria-pressed="true">Side-by-side</button>
+      <button data-mode="swipe">Swipe</button><button data-mode="diff">Selisih</button><button data-mode="agreement">Kesepakatan</button>
+    </nav>
+    <div class="header-actions"><button id="share" title="Salin tautan tampilan">Bagikan ↗</button><button id="toggle-left" aria-controls="controls" aria-expanded="true">Kontrol</button><button id="toggle-right" aria-controls="summary-panel" aria-expanded="true">Metrik</button></div>
+  </header>
+  <main class="workspace" id="workspace">
+    <aside id="controls" class="panel controls" aria-label="Kontrol analisis">
+      <div class="section-title"><span>PARAMETER ANALISIS</span><span class="tag">UTC</span></div>
+      <section><h2>Produk hujan</h2><label for="product">Produk tampilan Single</label><select id="product"><option value="A">Produk A</option><option value="B">Produk B</option></select>
+        <div class="source-meta" id="source-meta">Membaca NetCDF…</div><details><summary>Sumber & normalisasi</summary><div id="sources-detail"></div><a href="/docs" target="_blank" rel="noopener">Registrasi produk lewat API ↗</a></details></section>
+      <section><h2>Ambang deteksi</h2><div class="threshold-value"><strong id="threshold-value">50</strong><span>mm / periode</span></div>
+        <label class="sr-only" for="threshold">Ambang hujan dalam mm</label><input id="threshold" type="range" min="10" max="200" step="1" value="50">
+        <div class="range-ends"><span>10 mm</span><span>200 mm</span></div><div class="quick-values"><button data-threshold="20">20</button><button data-threshold="50" class="active">50</button><button data-threshold="100">100</button><button data-threshold="150">150</button></div>
+        <p class="helper">Grid disorot jika nilai <strong>&gt; ambang</strong>.</p></section>
+      <section><h2>Periode akumulasi</h2><label for="aggregation">Agregasi</label><select id="aggregation"><option value="native">Time-step asli</option><option value="daily" selected>Harian · 24 jam</option><option value="3daily">3 harian · 72 jam</option><option value="monthly">Bulanan</option><option value="max">Maksimum periode</option></select>
+        <p class="helper" id="aggregation-note">Akumulasi 18:00–18:00 UTC, bukan hari kalender.</p>
+        <label for="timezone">Zona waktu tampilan</label><select id="timezone"><option value="UTC">UTC</option><option value="Asia/Jakarta">WIB · UTC+7</option></select></section>
+      <section><h2>Layer peta</h2><label for="basemap">Peta dasar</label><select id="basemap"><option value="light">Terang · Esri</option><option value="dark">Gelap · Esri</option><option value="satellite">Satelit · Esri</option><option value="none">Tanpa basemap · offline</option></select>
+        <label for="opacity">Opasitas hujan <output id="opacity-value">80%</output></label><input id="opacity" type="range" min="10" max="100" value="80">
+        <label class="check"><input id="muted" type="checkbox" checked>Redam grid di bawah ambang</label>
+        <label class="check"><input id="accessible" type="checkbox">Palet alternatif buta warna</label><div id="overlay-controls"></div></section>
+      <section><h2>Area studi</h2><div class="draw-buttons"><button data-draw="rectangle">Kotak</button><button data-draw="polygon">Poligon</button><button data-draw="circle">Lingkaran</button></div><div class="draw-buttons"><button id="finish-draw" hidden>Selesai</button><button id="clear-area">Reset area</button></div><p id="area-hint" class="helper">Statistik default: seluruh domain. Klik peta untuk grafik grid.</p>
+        <label for="geojson-upload">Impor area GeoJSON</label><input id="geojson-upload" type="file" accept=".geojson,.json,application/geo+json"></section>
+      <section><h2>Ekspor hasil</h2><div class="export-actions"><button data-export="geojson">GeoJSON</button><button data-export="csv">CSV</button><button id="export-png">PNG peta</button></div><p class="helper">GeoJSON: grid lebat pada viewport. CSV: seluruh periode pada viewport.</p></section>
+    </aside>
+    <section class="map-shell" aria-label="Peta perbandingan curah hujan">
+      <div id="loading" class="loading" hidden></div><div id="map-stage" data-mode="side"><div id="map-a" class="map"></div><div id="map-b" class="map"></div></div>
+      <div class="map-labels"><span id="label-a">Produk A</span><span id="label-b">Produk B</span></div>
+      <form id="search-form" class="search"><label class="sr-only" for="search">Cari wilayah atau koordinat latitude,longitude</label><input id="search" placeholder="Cari wilayah atau lat, lon" autocomplete="off"><button type="submit" aria-label="Cari lokasi">⌕</button></form>
+      <div id="search-results" class="search-results" hidden></div>
+      <div class="swipe-control" id="swipe-control" hidden><label for="swipe">Pembatas A / B</label><input id="swipe" type="range" min="5" max="95" value="50"></div>
+      <div id="draw-status" class="map-message" hidden></div>
+      <div id="tooltip" class="grid-tooltip" hidden></div>
+      <div class="legend"><div class="legend-heading"><strong id="legend-title">Akumulasi hujan <span>mm / periode</span></strong><button id="legend-toggle" aria-expanded="true">−</button></div><div id="legend-items"></div><p id="legend-note">Klik kategori untuk sembunyikan.</p></div>
+      <div class="map-footer"><span id="cursor">Arahkan kursor ke peta</span><button id="fit-domain">Seluruh Indonesia ↗</button></div>
+    </section>
+    <aside id="summary-panel" class="panel summary" aria-label="Ringkasan perbandingan">
+      <div class="section-title"><span>RINGKASAN PERBANDINGAN</span><span id="area-badge" class="tag">Domain</span></div>
+      <h2 id="summary-heading">Grid hujan lebat</h2><p id="summary-period" class="helper">Memuat periode…</p>
+      <p id="time-alignment-note" class="time-note" hidden></p>
+      <div class="hero-metrics"><div><span class="product-name" id="metric-name-a">Produk A</span><strong id="count-a">—</strong><span>grid &gt; ambang</span></div><div><span class="product-name" id="metric-name-b">Produk B</span><strong id="count-b">—</strong><span>grid &gt; ambang</span></div></div>
+      <div class="ratio-line"><span>Rasio deteksi A / B</span><strong id="ratio">—</strong></div>
+      <table class="metrics-table"><caption class="sr-only">Metrik produk A dan B</caption><thead><tr><th scope="col">Metrik</th><th scope="col">A</th><th scope="col">B</th></tr></thead><tbody id="metrics-body"></tbody></table>
+      <section class="agreement-section"><h2>Kesepakatan grid</h2><div id="agreement-bar" class="agreement-bar"></div><dl id="agreement-stats"></dl></section>
+      <section class="conclusion"><h2>Interpretasi</h2><p id="conclusion">Menghitung deteksi…</p><p class="scientific-note">Tanpa referensi observasi, lebih sensitif berarti lebih banyak mendeteksi, <strong>bukan lebih akurat</strong>.</p></section>
+      <section><div class="chart-heading"><h2>Deteksi sepanjang forecast</h2><button id="jump-heavy">Puncak ↗</button></div><div class="chart-wrap"><canvas id="overview-chart" aria-label="Jumlah grid lebat per periode A dan B" role="img"></canvas></div><p id="overview-text" class="sr-only"></p></section>
+      <section id="point-panel"><h2>Inspeksi grid</h2><p id="point-label" class="helper">Klik grid atau cari koordinat untuk deret waktu.</p><div class="chart-wrap" id="point-chart-wrap" hidden><canvas id="point-chart" aria-label="Curah hujan A dan B per periode pada grid terpilih" role="img"></canvas></div><p id="point-stats" class="helper"></p></section>
+      <p id="valid-grids" class="footnote"></p>
+    </aside>
+  </main>
+  <footer class="timeline"><div class="play-controls"><button id="previous" aria-label="Periode sebelumnya">◀</button><button id="play" aria-label="Putar animasi" aria-pressed="false">▶</button><button id="next" aria-label="Periode berikutnya">▶|</button></div><div class="time-track"><div class="time-track-heading"><strong id="time-label">Memuat waktu…</strong><span id="partial-label"></span></div><label class="sr-only" for="time">Periode forecast</label><input id="time" type="range" min="0" max="4" step="1" value="0"><div id="time-ticks" class="time-ticks"></div></div><div class="speed"><label for="speed">Kecepatan</label><select id="speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select></div></footer>
+  <div id="status" class="status" role="status" aria-live="polite"></div><div id="error" class="error" role="alert" hidden><span id="error-text"></span><button id="dismiss-error" aria-label="Tutup pesan error">×</button></div>
+</body>
+</html>

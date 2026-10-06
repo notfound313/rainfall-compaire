@@ -1,0 +1,13 @@
+daily:
+  - {label: Tidak hujan / sangat ringan, lower: 0, color: '#cbd5e1'}
+  - {label: Ringan, lower: 5, color: '#8ecae6'}
+  - {label: Sedang, lower: 20, color: '#2a9d8f'}
+  - {label: Lebat, lower: 50, color: '#f4a261'}
+  - {label: Sangat lebat, lower: 100, color: '#e63946'}
+  - {label: Ekstrem, lower: 150, color: '#6a0572'}
+hourly:
+  - {label: Sangat ringan, lower: 0, color: '#cbd5e1'}
+  - {label: Ringan, lower: 1, color: '#8ecae6'}
+  - {label: Sedang, lower: 5, color: '#2a9d8f'}
+  - {label: Lebat, lower: 10, color: '#f4a261'}
+  - {label: Sangat lebat, lower: 20, color: '#e63946'}

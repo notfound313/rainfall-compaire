@@ -1,0 +1,28 @@
+products:
+  A:
+    name: ECMWF OBS
+    path: ../ecmwf_out/ecmwf_rain_daily.nc 
+    variable: precip_daily_mm
+    period_hours: 24
+    time_label: end
+  B:
+    name: GFS IFS
+    path: ../gfs_rain/GFS_DAILY_20260930_18z_ALL.nc
+    variable: precipitation
+    period_hours: 24
+    time_label: end
+grid: coarser
+# Match original date labels; preserve and report the different actual windows.
+time_alignment: date
+cache_dir: app/cache
+# Optional local GeoJSON overlays, relative to this project.
+overlays: []
+
+## repository of the ECMWF data, for reference.  This is not used by the code.
+# ../ecmwf_out/ecmwf_rain_daily.nc     path: ../ecmwf_rain/rain24h_*.nc
+#   variable: rain_24h
+# variable: precip_daily_mm
+# ../gfs_out/gfs_rain_daily.nc
+# variable: precip_daily_mm
+# path: ../gfs_rain/GFS_DAILY_20260930_18z_ALL.nc
+#   variable: precipitation

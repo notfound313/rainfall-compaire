@@ -1,0 +1,6 @@
+app/cache/
+frontend/node_modules/
+__pycache__/
+.pytest_cache/
+*.log
+screenshots/*.png

@@ -1,0 +1,9 @@
+{
+  "name": "rainfall-nc-compare-ui",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "maplibre-gl": "^6.11.2",
+    "chart.js": "^4.4.8"
+  }
+}
